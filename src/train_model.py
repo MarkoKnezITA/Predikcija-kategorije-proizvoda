@@ -1,18 +1,3 @@
-"""
-train_model.py
---------------
-Trenira klasifikator kategorija proizvoda i sprema model + metrike.
-
-Upotreba:
-    python src/train_model.py
-    python src/train_model.py --data-path data/products.csv \
-                               --model-path models/product_category_model.pkl \
-                               --metrics-path models/metrics.json
-
-Zahtjevi:
-    pip install scikit-learn pandas numpy
-"""
-
 import os
 import sys
 import json
