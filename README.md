@@ -1,6 +1,6 @@
-# Product Category Classifier 
+# Predikcija kategorije proizvoda 🛍️
 
-Automatska klasifikacija kategorije proizvoda na osnovu naziva : ML projekat za IMLP6 Task 03.
+Automatska ML klasifikacija kategorije proizvoda na osnovu naziva — IMLP6 Task 03.
 
 ## Pregled
 
@@ -19,7 +19,7 @@ Model prima naziv proizvoda (npr. `"Bosch WAP28390GB 8kg 1400 Spin"`) i predviđ
 | TVs | LG 55UK6300PLB |
 | CPUs | Intel Core i7-9700K |
 
-**Test accuracy: ~97.4%** (Logistic Regression + TF-IDF bigrams, n=35 096)
+**Test accuracy: ~98.1% | Macro F1: ~98.1%** (LinearSVC + TF-IDF bigrams + numerički featurei)
 
 ---
 
@@ -28,13 +28,19 @@ Model prima naziv proizvoda (npr. `"Bosch WAP28390GB 8kg 1400 Spin"`) i predviđ
 ```
 product-classifier/
 ├── data/
-│   └── products.csv              # Dataset (35 000+ proizvoda)
+│   └── products.csv                         # Dataset (35 000+ proizvoda)
+├── docs/
+│   └── model_notes.md                       # Tehničke bilješke o pipeline-u i featureima
 ├── models/
-│   └── product_classifier.pkl    # Sačuvani model (generiše train_model.py)
+│   ├── product_category_model.pkl           # Sačuvani model
+│   └── metrics.json                         # Metrike svih kandidata i odabranog modela
 ├── notebooks/
-│   └── product_classifier_analysis.ipynb  # EDA + feature engineering + evaluacija
-├── train_model.py                # Treniranje i čuvanje modela
-├── predict_category.py           # Interaktivno testiranje
+│   └── product_classifier_analysis.ipynb   # EDA + feature engineering + evaluacija
+├── src/
+│   ├── model_utils.py                       # Helper funkcije (čišćenje, feature engineering)
+│   ├── train_model.py                       # Treniranje i čuvanje modela
+│   └── predict_category.py                  # Interaktivno testiranje
+├── requirements.txt
 └── README.md
 ```
 
@@ -45,66 +51,79 @@ product-classifier/
 ### 1. Instaliraj zavisnosti
 
 ```bash
-pip install scikit-learn pandas numpy matplotlib seaborn
+pip install -r requirements.txt
 ```
 
 ### 2. Treniraj model
 
 ```bash
-python train_model.py
+python src/train_model.py
+```
+
+Opcijski argumenti:
+
+```bash
+python src/train_model.py --data-path data/products.csv \
+                           --model-path models/product_category_model.pkl \
+                           --metrics-path models/metrics.json
 ```
 
 Skripta će:
 - učitati i očistiti `data/products.csv`
-- primeniti feature engineering
-- trenirati i uporediti 3 modela (Logistic Regression, Naive Bayes, Random Forest)
-- sačuvati best model u `models/product_classifier.pkl`
-- ispisati classification report
+- primijeniti feature engineering (TF-IDF + numerički featurei)
+- trenirati i usporediti 3 modela: LinearSVC, LogisticRegression, ComplementNB
+- odabrati best model po **Macro F1 score**
+- sačuvati model u `.pkl` i metrike u `metrics.json`
 
 ### 3. Testiraj model
 
 **Interaktivni mod:**
 ```bash
-python predict_category.py
+python src/predict_category.py
 ```
 
 **Direktno iz komandne linije:**
 ```bash
-python predict_category.py "Samsung Galaxy A52 128GB"
-# Kategorija: Mobile Phones  (pouzdanost: 99%)
+python src/predict_category.py "Samsung Galaxy A52 128GB"
+# Predviđena kategorija: Mobile Phones
 ```
 
 ### 4. Istraži analizu
 
-Otvori `notebooks/product_classifier_analysis.ipynb` u Jupyter-u ili Google Colab-u za kompletan prikaz svih koraka.
+Otvori `notebooks/product_classifier_analysis.ipynb` u Jupyter-u ili Google Colab-u.
 
 ---
 
 ## Metodologija
 
-### Priprema podataka
-- Normalizacija neujednačenih labela (`fridge` → `Fridge Freezers`, `CPU` → `CPUs`, itd.)
-- Uklanjanje redova sa praznim naslovom ili kategorijom (~215 redova, <1%)
+### Čišćenje podataka
+- Normalizacija neujednačenih labela (`fridge → Fridges`, `CPU → CPUs`, `Mobile Phone → Mobile Phones`)
+- Uklanjanje redova s praznim naslovom ili kategorijom (~215 redova, <1%)
+- Parsiranje datuma u godinu, mjesec i dan tjedna
 
 ### Feature engineering
-Svaki naslov se transformiše u obogaćeni tekst:
-- **Lowercase naslov** — osnova
-- **Numerički tokeni × 2** — kapacitet (128GB), težina (8kg), godina (2024), model broj — jaki signali kategorije
-- **Pseudo-tokeni** — `longtitle`, `longword`, `hasnum` — enkodiraju strukturu naslova
+Kombinirani `ColumnTransformer` pipeline:
+- **Tekst** — TF-IDF bigrams (sublinear_tf, max 50k featurea) na obogaćenom naslovu
+- **Numerički** — Number_of_Views, Merchant Rating, ListingYear, ListingMonth, ListingDayOfWeek
 
-### Modeli
-| Model | Test Accuracy | Komentar |
+Naslov se obogaćuje pseudo-tokenima: numerički tokeni ×2 (kapacitet, model kod), `longtitle`, `longword`, `hasnum`.
+
+### Poređenje modela
+
+| Model | Test Accuracy | Macro F1 |
 |---|---|---|
-| **Logistic Regression** | **97.39%** | ✅ Izabran — najboljii balans između preciznosti, brzine i interpretabilnosti |
-| Naive Bayes | 97.26% | Brz, skoro jednako dobar |
-| Random Forest | 96.00% | Sporiji, nešto slabiji na kratkim naslovima |
+| **LinearSVC** ✅ | **98.08%** | **98.06%** |
+| LogisticRegression | 97.83% | 97.76% |
+| ComplementNB | 97.61% | 97.53% |
 
-### Slabosti modela
-- Fridge Freezers vs Fridges — kratki model kodovi (npr. `smeg sbs8004po`) ne nose dovoljno informacija; precision ~91-95%
-- Rešenje: dodati eksterni rečnik brendova po kategorijama
+Model se bira automatski po Macro F1 score.
+
+### Slabosti
+- **Fridge Freezers vs Fridges** — kratki model kodovi (npr. `smeg sbs8004po`) teško razlikovati
+- LinearSVC ne daje postotak pouzdanosti (nema `predict_proba`)
 
 ---
 
 ## Autor
 
-Marko Knežević
+Ryth1m / s3ro — IMLP6 Task 03
