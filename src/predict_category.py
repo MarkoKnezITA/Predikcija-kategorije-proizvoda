@@ -1,16 +1,3 @@
-"""
-predict_category.py
--------------------
-Interaktivni alat za predikciju kategorije proizvoda.
-
-Upotreba:
-    python src/predict_category.py
-    python src/predict_category.py "Samsung Galaxy A52 128GB"
-
-Model mora biti prethodno treniran:
-    python src/train_model.py
-"""
-
 import os
 import sys
 import pickle
