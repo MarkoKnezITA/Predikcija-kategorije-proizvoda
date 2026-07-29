@@ -1,4 +1,4 @@
-# Predikcija kategorije proizvoda 🛍️
+# 🛍️ Predikcija kategorije proizvoda 🛍️
 
 Automatska ML klasifikacija kategorije proizvoda na osnovu naziva : IMLP6 Task 03.
 
