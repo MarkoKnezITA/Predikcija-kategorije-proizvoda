@@ -1,6 +1,6 @@
-# Product Category Classifier 🛍️
+# Product Category Classifier 
 
-Automatska klasifikacija kategorije proizvoda na osnovu naziva — ML projekat za IMLP6 Task 03.
+Automatska klasifikacija kategorije proizvoda na osnovu naziva : ML projekat za IMLP6 Task 03.
 
 ## Pregled
 
@@ -107,4 +107,4 @@ Svaki naslov se transformiše u obogaćeni tekst:
 
 ## Autor
 
-Ryth1m / s3ro — IMLP6 projekat
+Marko Knežević
