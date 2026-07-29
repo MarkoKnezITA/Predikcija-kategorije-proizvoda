@@ -1,6 +1,6 @@
 # Predikcija kategorije proizvoda 🛍️
 
-Automatska ML klasifikacija kategorije proizvoda na osnovu naziva — IMLP6 Task 03.
+Automatska ML klasifikacija kategorije proizvoda na osnovu naziva : IMLP6 Task 03.
 
 ## Pregled
 
@@ -126,4 +126,4 @@ Model se bira automatski po Macro F1 score.
 
 ## Autor
 
-Ryth1m / s3ro — IMLP6 Task 03
+Marko Knežević
