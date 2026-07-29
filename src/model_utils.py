@@ -1,10 +1,3 @@
-"""
-model_utils.py
---------------
-Dijeljene helper funkcije za pripremu podataka, normalizaciju labela
-i feature engineering. Koriste ih i train_model.py i predict_category.py.
-"""
-
 import re
 import pandas as pd
 import numpy as np
